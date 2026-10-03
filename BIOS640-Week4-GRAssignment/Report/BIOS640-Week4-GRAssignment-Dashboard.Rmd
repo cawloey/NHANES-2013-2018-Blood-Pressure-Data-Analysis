@@ -1,0 +1,72 @@
+---
+title: "NHANES Dashboard"
+author: "Chloé Langevin"
+date: "2026-09-30"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+---
+
+```{r setup, include=FALSE}
+# Loading necessary packages
+library(pacman)
+pacman::p_load(tidyverse)
+pacman::p_load(here)
+pacman::p_load(rio)
+pacman::p_load(knitr)
+pacman::p_load(cowplot)
+pacman::p_load(ggpubr)
+pacman::p_load(dplyr)
+pacman::p_load(DT)
+pacman::p_load(RColorBrewer)
+pacman::p_load(flexdashboard)
+pacman::p_load(kableExtra)
+
+
+# Importing data
+nhanes_data <- import(here("Data", "cleaned_NHANES_final.csv"))
+```
+## Row {data-height=650}
+
+### NHANES Sample Characteristics
+
+```{r plot-describing-nhanes}
+knitr::include_graphics(
+  here::here("Figures", "demographic_distribution.png")
+)
+```
+
+## Row {data-height=350}
+
+### Participants 21 years old or older
+
+```{r gauge-21years-old}
+percentage_21_plus <- mean(nhanes_data$age >= 21) * 100
+
+flexdashboard::gauge(
+  percentage_21_plus,
+  min = 0,
+  max = 100,
+  symbol  = "%",
+  label   = "Age 21 or older",
+  sectors = flexdashboard::gaugeSectors(
+    danger = c(0, 50),
+    warning = c(50, 75),
+    success = c(75, 100)
+  )
+)
+```
+
+### Average SBP over 120 mm Hg
+
+```{r pressure, echo=FALSE}
+percentage_sbp_above_120 <- mean(
+  nhanes_data$mean_systolic_bp > 120
+) * 100
+
+flexdashboard::valueBox(
+  value = paste0(round(percentage_sbp_above_120, 1), "%"),
+  caption = "Participants with an average SBP > 120 mmHg",
+  color = "firebrick"
+)
+```
