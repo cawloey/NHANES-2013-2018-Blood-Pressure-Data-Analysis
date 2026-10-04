@@ -1,5 +1,4 @@
-# BIOS640 Week 4: NHANES Data Analysis
-NHANES 2013–2018: Blood Pressure Data Analysis
+# NHANES 2013–2018: Blood Pressure Data Analysis
 ## Overview
 
 This repository contains assignments completed for the BIOS640 class, part of 
