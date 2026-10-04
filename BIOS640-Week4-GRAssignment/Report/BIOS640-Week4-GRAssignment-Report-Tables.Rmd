@@ -1,0 +1,357 @@
+---
+title: "Description of the NHANES dataset"
+author: "Chloé Langevin"
+date: "2026-09-30"
+output:
+  pdf_document:
+    latex_engine: xelatex
+bibliography: ../References/nhanes-2013-2018-references.bib
+---
+
+# Introduction
+The National Health and Nutrition Examination Survey (NHANES), conducted by the U.S. Centers for Disease Control and Prevention (CDC) through the National Center for Health Statistics (NCHS), is a national survey designed to assess the health and nutrition of American adults and children [@NHANES2013-2014; @NHANES2015-2016; @NHANES2017-2018]. This analysis uses NHANES data collected between 2013 and 2018, including demographic characteristics and blood pressure measurements, to describe the characteristics of the study population and examine patterns in mean systolic blood pressure (SBP) across survey waves.
+
+# Demographic Overview
+A demographic overview of the NHANES sample was conducted by examining participant gender and ethnicity distributions across the survey waves 2013-2014; 2015-2016; 2017-2018 [@NHANES2013-2014; @NHANES2015-2016; @NHANES2017-2018]. Prior to analysis, the datasets were cleaned by removing participants with missing information for age, gender, or mean systolic blood pressure. The resulting sample characteristics are summarized in Table 1.
+
+The sample size decreased across survey waves, from 7,528 participants in 2013–2014 to 6,713 participants in 2017–2018. Gender distribution remained relatively consistent over time, with females representing approximately 1% more of the sample than males across all waves.
+
+The ethnicity distribution showed that Non-Hispanic White participants represented the largest proportion of the sample in all survey waves. However, this proportion decreased between 2013–2014 and 2017–2018, while the representation of other groups, including Non-Hispanic Black, Non-Hispanic Asian, and participants classified as Other Race, increased. These changes reflect differences in the demographic composition of NHANES participants across survey cycles; however, the survey data alone cannot determine the underlying factors contributing to these variations.
+
+# SBP Summary Statistics
+The mean SBP was calculated using the available measurements from up to four blood pressure readings collected during the examination component of NHANES. Descriptive statistics for mean SBP across survey waves are presented in Table 1.
+
+The minimum observed mean SBP value was particularly low in the 2013–2014 wave (64 mmHg), while minimum values were closer to 70 mmHg in subsequent waves (74 mmHg in 2016–2017 and 72 mmHg in 2017–2018). In contrast, maximum SBP values increased slightly over time, from 228,7 mmHg in 2013–2014 to 234,0 mmHg in 2017–2018.
+
+More importantly, both the median and mean SBP showed a gradual increase across survey waves. Mean SBP increased by approximately 2 mmHg between 2013–2014 and 2015–2016, followed by an additional increase in 2017–2018. Since mean and median values summarize the overall distribution of participants rather than isolated extreme observations, these changes suggest a shift toward higher SBP values over time.
+
+The standard deviation also increased from 18.1 mmHg in 2013–2014 to 20.3 mmHg in 2017–2018, indicating greater variability in SBP measurements in the later survey wave. Although the mean SBP remained below 120 mmHg, values approached thresholds commonly used to classify elevated blood pressure. Overall, these findings suggest a gradual increase in SBP levels and variability across NHANES survey cycles.
+
+# Creation of a summerizing table
+A table was created in R by calculating descriptive statistics for each NHANES survey wave and combining the results into a single data frame. Categorical variables were summarized as count and percentages, while SBP was summarized using descriptive statistics. The table was then formatted with kableExtra by adjusting column names, alignment, headers, and selected formatting elements for PDF output.
+
+```{r setup, include=FALSE}
+library(pacman)
+pacman::p_load(tidyverse)
+pacman::p_load(here)
+pacman::p_load(rio)
+pacman::p_load(knitr)
+pacman::p_load(cowplot)
+pacman::p_load(ggpubr)
+pacman::p_load(dplyr)
+pacman::p_load(RColorBrewer)
+pacman::p_load(kableExtra)
+
+
+# Importing data
+nhanes_data <- import(here("Data", "cleaned_NHANES_final.csv"))
+
+# Initial data review
+dim(nhanes_data)
+str(nhanes_data)
+View(nhanes_data)
+head(nhanes_data)
+```
+```{r preparing-data, echo = FALSE}
+# Separating each waves
+nhanes_2015 <- nhanes_data %>%
+  filter(wave_id == "2015")
+
+nhanes_2016 <- nhanes_data %>%
+  filter(wave_id == "2016")
+
+nhanes_2017 <- nhanes_data %>%
+  filter(wave_id == "2017")
+
+# Calculating sample size
+n_2015 <- nrow(nhanes_2015)
+n_2016 <- nrow(nhanes_2016)
+n_2017 <- nrow(nhanes_2017)
+
+# Calculating gender counts and pourcentages
+# For the 2015 wave
+gender_2015 <- nhanes_2015 %>%
+  count(gender) %>%
+  mutate(
+    percentage = n / sum(n) * 100,
+    result = paste0(
+      format(n, big.mark = ","),
+      " (",
+      round(percentage),
+      "%)"
+    )
+  )
+# For the 2016 wave
+gender_2016 <- nhanes_2016 %>%
+  count(gender) %>%
+  mutate(
+    percentage = n / sum(n) * 100,
+    result = paste0(
+      format(n, big.mark = ","),
+      " (",
+      round(percentage),
+      "%)"
+    )
+  )
+# For the 2017 wave
+gender_2017 <- nhanes_2017 %>%
+  count(gender) %>%
+  mutate(
+    percentage = n / sum(n) * 100,
+    result = paste0(
+      format(n, big.mark = ","),
+      " (",
+      round(percentage),
+      "%)"
+    )
+  )
+
+# Calculating ethnicities
+# For the 2015 wave
+ethnicity_2015 <- nhanes_2015 %>%
+  count(ethnicity_2) %>%
+  mutate(
+    percentage = n / sum(n) * 100,
+    result = paste0(
+      format(n, big.mark = ","),
+      " (",
+      round(percentage),
+      "%)"
+    )
+  )
+# For the 2016 wave
+ethnicity_2016 <- nhanes_2016 %>%
+  count(ethnicity_2) %>%
+  mutate(
+    percentage = n / sum(n) * 100,
+    result = paste0(
+      format(n, big.mark = ","),
+      " (",
+      round(percentage),
+      "%)"
+    )
+  )
+# For the 2017 wave
+ethnicity_2017 <- nhanes_2017 %>%
+  count(ethnicity_2) %>%
+  mutate(
+    percentage = n / sum(n) * 100,
+    result = paste0(
+      format(n, big.mark = ","),
+      " (",
+      round(percentage),
+      "%)"
+    )
+  )
+
+# Calculating SBP statistics
+# For the 2015 wave
+min_sbp_2015 <- min(
+  nhanes_2015$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+max_sbp_2015 <- max(
+  nhanes_2015$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+median_sbp_2015 <- median(
+  nhanes_2015$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+mean_sbp_2015 <- mean(
+  nhanes_2015$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+sd_sbp_2015 <- sd(
+  nhanes_2015$mean_systolic_bp,
+  na.rm = TRUE
+)
+# For the 2016 wave
+min_sbp_2016 <- min(
+  nhanes_2016$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+max_sbp_2016 <- max(
+  nhanes_2016$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+median_sbp_2016 <- median(
+  nhanes_2016$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+mean_sbp_2016 <- mean(
+  nhanes_2016$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+sd_sbp_2016 <- sd(
+  nhanes_2016$mean_systolic_bp,
+  na.rm = TRUE
+)
+# For the 2017 wave
+min_sbp_2017 <- min(
+  nhanes_2017$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+max_sbp_2017 <- max(
+  nhanes_2017$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+median_sbp_2017 <- median(
+  nhanes_2017$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+mean_sbp_2017 <- mean(
+  nhanes_2017$mean_systolic_bp,
+  na.rm = TRUE
+)
+
+sd_sbp_2017 <- sd(
+  nhanes_2017$mean_systolic_bp,
+  na.rm = TRUE
+)
+```
+```{r creating-table, echo = FALSE}
+summary_table <- data.frame(
+  Variable = c(
+    "Sample size, n",
+    "Gender",
+    "  Male",
+    "  Female",
+    "Ethnicity",
+    "  White",
+    "  Black",
+    "  Mexican",
+    "  Asian",
+    "  Other Hispanic",
+    "  Other",
+    "SBP Summary Statistics",
+    "  Minimum",
+    "  Maximum",
+    "  Median",
+    "  Mean",
+    "  Standard deviation"
+  ),
+  
+  `2013-2014` = c(
+    n_2015,
+    "",
+    gender_2015$result[gender_2015$gender == "Male"],
+    gender_2015$result[gender_2015$gender == "Female"],
+    "",
+    ethnicity_2015$result[ethnicity_2015$ethnicity_2 == "White"],
+    ethnicity_2015$result[ethnicity_2015$ethnicity_2 == "Black"],
+    ethnicity_2015$result[ethnicity_2015$ethnicity_2 == "Mexican"],
+    ethnicity_2015$result[ethnicity_2015$ethnicity_2 == "Asian"],
+    ethnicity_2015$result[ethnicity_2015$ethnicity_2 == "Other Hispanic"],
+    ethnicity_2015$result[ethnicity_2015$ethnicity_2 == "Other"],
+    "",
+round(min_sbp_2015, 1),
+round(max_sbp_2015, 1),
+round(median_sbp_2015, 1),
+round(mean_sbp_2015, 1),
+round(sd_sbp_2015, 1)
+  ),
+  
+  `2015-2016` = c(
+    n_2016,
+    "",
+    gender_2016$result[gender_2016$gender == "Male"],
+    gender_2016$result[gender_2016$gender == "Female"],
+    "",
+    ethnicity_2016$result[ethnicity_2016$ethnicity_2 == "White"],
+    ethnicity_2016$result[ethnicity_2016$ethnicity_2 == "Black"],
+    ethnicity_2016$result[ethnicity_2016$ethnicity_2 == "Mexican"],
+    ethnicity_2016$result[ethnicity_2016$ethnicity_2 == "Asian"],
+    ethnicity_2016$result[ethnicity_2016$ethnicity_2 == "Other Hispanic"],
+    ethnicity_2016$result[ethnicity_2016$ethnicity_2 == "Other"],
+    "",
+round(min_sbp_2016, 1),
+round(max_sbp_2016, 1),
+round(median_sbp_2016, 1),
+round(mean_sbp_2016, 1),
+round(sd_sbp_2016, 1)
+  ),
+  
+  `2017-2018` = c(
+    n_2017,
+    "",
+    gender_2017$result[gender_2017$gender == "Male"],
+    gender_2017$result[gender_2017$gender == "Female"],
+    "",
+    ethnicity_2017$result[ethnicity_2017$ethnicity_2 == "White"],
+    ethnicity_2017$result[ethnicity_2017$ethnicity_2 == "Black"],
+    ethnicity_2017$result[ethnicity_2017$ethnicity_2 == "Mexican"],
+    ethnicity_2017$result[ethnicity_2017$ethnicity_2 == "Asian"],
+    ethnicity_2017$result[ethnicity_2017$ethnicity_2 == "Other Hispanic"],
+    ethnicity_2017$result[ethnicity_2017$ethnicity_2 == "Other"],
+    "",
+round(min_sbp_2017, 1),
+round(max_sbp_2017, 1),
+round(median_sbp_2017, 1),
+round(mean_sbp_2017, 1),
+round(sd_sbp_2017, 1)
+  )
+)
+```
+```{r formating-table, echo = FALSE}
+# Ensuring consistent decimal number
+summary_table[13:17, 2:4] <- lapply(
+  summary_table[13:17, 2:4],
+  function(x) sprintf("%.1f", as.numeric(x))
+)
+
+# Renaming columns
+names(summary_table) <- c(
+  "Variable",
+  "2013-2014",
+  "2015-2016",
+  "2017-2018"
+)
+# Creating table
+summary_table %>%
+  kbl(
+    format = "latex",
+    booktabs = TRUE,
+    caption = "Demographic and Descriptive Statistics of the NHANES Sample by Survey Wave",
+    align = c("l", "r", "r", "r"),
+    col.names = c("Variable", "2013-2014", "2015-2016", "2017-2018")
+  ) %>%
+
+# Adding spanner label  
+  add_header_above(
+    c("Characteristics" = 1, "NHANES Survey Wave" = 3),
+    bold = TRUE
+  ) %>%
+  
+# Adjusting columns widths
+  column_spec(1, width = "4cm") %>% 
+
+# Adding emphasizing elements  
+  row_spec(2, bold = TRUE) %>%
+  row_spec(5, bold = TRUE) %>%
+  row_spec(12, bold = TRUE, hline = TRUE) %>%
+  row_spec(c(15, 16), bold = TRUE) %>%
+  
+#  Formating
+  kable_styling(
+    latex_options = c("HOLD_position", "scale_down"),
+    full_width = FALSE,
+    font_size = 9
+  )
+```
+# Conclusion
+
+This analysis provides an overview of the demographic characteristics and systolic blood pressure (SBP) patterns among NHANES participants from 2013 to 2018. The sample remained relatively balanced in terms of gender, while changes in ethnicity distribution were observed across survey waves. Additionally, descriptive statistics indicated a gradual increase in mean and median SBP values over time, suggesting a potential upward trend in SBP among the U.S. population. However, further analyses would be required to determine whether these changes are associated with demographic, lifestyle, or health-related factors.
+
+# References
